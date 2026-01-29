@@ -1,51 +1,85 @@
 package wallet
 
-import (
-	"math"
-)
-
 type Owner struct {
 	id        string
 	firstname string
 	lastname  string
 }
 
+func NewOwner(id string, firstname string, lastname string) Owner {
+	return Owner{
+		id:        id,
+		firstname: firstname,
+		lastname:  lastname,
+	}
+}
+
+func (o Owner) ID() string {
+	return o.id
+}
+
+func (o Owner) Firstname() string {
+	return o.firstname
+}
+
+func (o Owner) Lastname() string {
+	return o.lastname
+}
+
+//---------------------------------------------------------------------------//
+
 type Wallet struct {
 	id       string
-	balances float64
+	balances uint64
 	owner    Owner
 }
 
-func (w *Wallet) GetBalance() float64 {
+func NewWallet(id string, balances uint64, owner Owner) Wallet {
+	return Wallet{
+		id:       id,
+		balances: balances,
+		owner:    owner,
+	}
+}
+
+func (w *Wallet) Owner() Owner {
+	return w.owner
+}
+
+func (w *Wallet) ID() string {
+	return w.id
+}
+
+func (w *Wallet) Balance() uint64 {
 	return w.balances
 }
 
-func (w *Wallet) Deposit(amount float64) *WalletErr {
+func (w *Wallet) Deposit(amount uint64) error {
 	if amount <= 0 {
 		return WalletErrInvalidAmount
 	}
 
-	preCal := w.balances + amount
-	if math.IsInf(preCal, 1) {
+	updatedBalance := w.balances + amount
+	if updatedBalance < w.balances {
 		return WalletErrBalanceWillOverflow
 	}
 
-	w.balances = preCal
+	w.balances = updatedBalance
 
 	return nil
 }
 
-func (w *Wallet) Withdrawn(amount float64) *WalletErr {
+func (w *Wallet) Withdraw(amount uint64) error {
 	if amount <= 0 {
 		return WalletErrInvalidAmount
 	}
 
-	preCal := w.balances - amount
-	if preCal < 0 {
-		return WalletErrNegBalance
+	updatedBalance := w.balances - amount
+	if updatedBalance > w.balances {
+		return WalletErrBalanceWillUnderflow
 	}
 
-	w.balances = preCal
+	w.balances = updatedBalance
 
 	return nil
 }

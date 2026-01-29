@@ -1,5 +1,5 @@
 package pkg
 
-type Record interface {
-    GetID() string
+type RecordDTO interface {
+    ID() string
 }

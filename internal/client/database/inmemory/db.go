@@ -45,10 +45,10 @@ func (r *InMemoryDB) GetTable(name string) (IInMemoryDBTable, error) {
 //---------------------------------------------------------------------------//
 
 type IInMemoryDBTable interface {
-	Name() string
-	GetById(id string) pkg.Result[pkg.Record]
-	Save(data pkg.Record) error
-	GetAll() pkg.Result[[]pkg.Record]
+	Name() 						string
+	GetById(id string) 			pkg.Result[pkg.RecordDTO]
+	Save(data pkg.RecordDTO) 	error
+	GetAll() 					pkg.Result[[]pkg.RecordDTO]
 }
 
 var _ IInMemoryDBTable = &InMemoryDBTable{}
@@ -56,13 +56,13 @@ var _ IInMemoryDBTable = &InMemoryDBTable{}
 type InMemoryDBTable struct {
 	name string
 	mu   sync.RWMutex
-	data map[string]pkg.Record
+	data map[string]pkg.RecordDTO
 }
 
 func NewInMemoryDBTable(name string) *InMemoryDBTable {
 	return &InMemoryDBTable{
 		name: fmt.Sprintf("InMemoryDBTable_%s", name),
-		data: make(map[string]pkg.Record),
+		data: make(map[string]pkg.RecordDTO),
 	}
 }
 
@@ -70,24 +70,24 @@ func (t *InMemoryDBTable) Name() string {
 	return t.name
 }
 
-func (t *InMemoryDBTable) GetById(id string) pkg.Result[pkg.Record] {
+func (t *InMemoryDBTable) GetById(id string) pkg.Result[pkg.RecordDTO] {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
 	if record, ok := t.data[id]; ok {
-		return pkg.Result[pkg.Record]{
+		return pkg.Result[pkg.RecordDTO]{
 			Res: record,
 			Err: nil,
 		}
 	}
 
-	return pkg.Result[pkg.Record]{
+	return pkg.Result[pkg.RecordDTO]{
 		Res: nil,
 		Err: ErrNotFoundRecord,
 	}
 }
 
-func (t *InMemoryDBTable) Save(data pkg.Record) (err error) {
+func (t *InMemoryDBTable) Save(data pkg.RecordDTO) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = ErrSaveError
@@ -97,32 +97,32 @@ func (t *InMemoryDBTable) Save(data pkg.Record) (err error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	dataId := data.GetID()
+	dataId := data.ID()
 	t.data[dataId] = data
 
 	return err
 }
 
-func (t *InMemoryDBTable) GetAll() pkg.Result[[]pkg.Record] {
+func (t *InMemoryDBTable) GetAll() pkg.Result[[]pkg.RecordDTO] {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
 	amount := len(t.data)
 	if amount == 0 {
-		return pkg.Result[[]pkg.Record]{
+		return pkg.Result[[]pkg.RecordDTO]{
 			Res: nil,
 			Err: ErrNotFoundRecord,
 		}
 	}
 
 	i := 0
-	records := make([]pkg.Record, amount)
+	records := make([]pkg.RecordDTO, amount)
 	for _, rec := range t.data {
 		records[i] = rec
 		i += 1
 	}
 
-	return pkg.Result[[]pkg.Record]{
+	return pkg.Result[[]pkg.RecordDTO]{
 		Res: records,
 		Err: nil,
 	}
