@@ -23,5 +23,5 @@ func NewWalletErr(msg string) *WalletErr {
 var (
 	WalletErrInvalidAmount = NewWalletErr("Invalid incoming amount")
 	WalletErrBalanceWillOverflow = NewWalletErr("Incoming amount will causing overflow balances")
-	WalletErrNegBalance = NewWalletErr("Incoming amount will causing negative balances")
+	WalletErrBalanceWillUnderflow = NewWalletErr("Incoming amount will causing underflow balances")
 )
