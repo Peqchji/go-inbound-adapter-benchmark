@@ -2,8 +2,9 @@ package inmemory
 
 import (
 	"fmt"
-	"github.com/Peqchji/go-inbound-adapter-benchmark/pkg"
 	"sync"
+
+	"github.com/Peqchji/go-inbound-adapter-benchmark/pkg"
 )
 
 type InMemoryDB struct {
@@ -45,10 +46,10 @@ func (r *InMemoryDB) GetTable(name string) (IInMemoryDBTable, error) {
 //---------------------------------------------------------------------------//
 
 type IInMemoryDBTable interface {
-	Name() 						string
-	GetById(id string) 			pkg.Result[pkg.RecordDTO]
-	Save(data pkg.RecordDTO) 	error
-	GetAll() 					pkg.Result[[]pkg.RecordDTO]
+	Name() string
+	GetById(id string) pkg.Result[pkg.RecordDTO]
+	Save(data pkg.RecordDTO) error
+	GetAll() pkg.Result[[]pkg.RecordDTO]
 }
 
 var _ IInMemoryDBTable = &InMemoryDBTable{}
@@ -61,7 +62,7 @@ type InMemoryDBTable struct {
 
 func NewInMemoryDBTable(name string) *InMemoryDBTable {
 	return &InMemoryDBTable{
-		name: fmt.Sprintf("InMemoryDBTable_%s", name),
+		name: name,
 		data: make(map[string]pkg.RecordDTO),
 	}
 }
