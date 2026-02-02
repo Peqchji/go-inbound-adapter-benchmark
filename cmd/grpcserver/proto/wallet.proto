@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package wallet;
+
+option go_package = "github.com/Peqchji/go-inbound-adapter-benchmark/api/proto";
+
+service WalletService {
+  rpc GetWallet (GetWalletRequest) returns (GetWalletResponse);
+  rpc CreateWallet (CreateWalletRequest) returns (CreateWalletResponse);
+}
+
+message Owner {
+  string id = 1;
+  string firstname = 2;
+  string lastname = 3;
+}
+
+message Wallet {
+  string id = 1;
+  uint64 balance = 2;
+  Owner owner = 3;
+}
+
+message GetWalletRequest {
+  string id = 1;
+}
+
+message GetWalletResponse {
+  Wallet wallet = 1;
+}
+
+message CreateWalletRequest {
+  string owner_id = 1;
+  string firstname = 2;
+  string lastname = 3;
+}
+
+message CreateWalletResponse {
+  Wallet wallet = 1;
+}
