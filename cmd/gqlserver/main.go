@@ -10,7 +10,10 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/Peqchji/go-inbound-adapter-benchmark/graph"
+	"github.com/Peqchji/go-inbound-adapter-benchmark/cmd/gqlserver/graph"
+	adapterinmemory "github.com/Peqchji/go-inbound-adapter-benchmark/internal/adapter/inmemory"
+	"github.com/Peqchji/go-inbound-adapter-benchmark/internal/client/database/inmemory"
+	"github.com/Peqchji/go-inbound-adapter-benchmark/internal/domain/wallet"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -22,7 +25,20 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+	dbClient := inmemory.NewInMemoryClient()
+	_ = dbClient.CreateTable("wallet")
+
+	walletTable, err := dbClient.GetTable("wallet")
+	if err != nil {
+		log.Fatalf("failed to get wallet table: %v", err)
+	}
+
+	repo := adapterinmemory.NewInMemoryWalletAdapter(walletTable)
+	svc := wallet.NewWalletService(repo)
+
+	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
+		Service: svc,
+	}}))
 
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})
