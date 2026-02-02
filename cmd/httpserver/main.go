@@ -2,12 +2,13 @@ package main
 
 import (
 	"log"
-	"net/http"
 
 	adapterinmemory "github.com/Peqchji/go-inbound-adapter-benchmark/internal/adapter/inmemory"
 	adapterrest "github.com/Peqchji/go-inbound-adapter-benchmark/internal/adapter/rest"
 	"github.com/Peqchji/go-inbound-adapter-benchmark/internal/client/database/inmemory"
 	"github.com/Peqchji/go-inbound-adapter-benchmark/internal/domain/wallet"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -24,11 +25,11 @@ func main() {
 
 	handler := adapterrest.NewWalletHandler(svc)
 
-	mux := http.NewServeMux()
-	handler.RegisterRoutes(mux)
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
-	log.Println("Starting HTTP server on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
-		log.Fatal(err)
-	}
+	handler.RegisterRoutes(e)
+
+	e.Logger.Fatal(e.Start(":8080"))
 }

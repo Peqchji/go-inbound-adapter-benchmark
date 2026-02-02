@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -14,6 +13,8 @@ import (
 	adapterinmemory "github.com/Peqchji/go-inbound-adapter-benchmark/internal/adapter/inmemory"
 	"github.com/Peqchji/go-inbound-adapter-benchmark/internal/client/database/inmemory"
 	"github.com/Peqchji/go-inbound-adapter-benchmark/internal/domain/wallet"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -51,9 +52,14 @@ func main() {
 		Cache: lru.New[string](100),
 	})
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
+	e.GET("/", echo.WrapHandler(playground.Handler("GraphQL playground", "/query")))
+	e.POST("/query", echo.WrapHandler(srv))
+	e.GET("/query", echo.WrapHandler(srv))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	e.Logger.Fatal(e.Start(":" + port))
 }

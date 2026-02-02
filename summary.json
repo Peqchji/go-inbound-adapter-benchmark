@@ -1,0 +1,216 @@
+{
+    "metrics": {
+        "http_req_duration{expected_response:true}": {
+            "p(90)": 10.10048,
+            "p(95)": 11.758644999999998,
+            "p(99)": 16.87677799999998,
+            "avg": 5.5337060292032,
+            "min": 0,
+            "med": 5.2766,
+            "max": 44.5747
+        },
+        "data_received": {
+            "count": 81200164,
+            "rate": 1623766.7264157622
+        },
+        "vus": {
+            "min": 0,
+            "max": 50,
+            "value": 50
+        },
+        "vus_max": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "grpc_req_duration": {
+            "avg": 1.1615311930443475,
+            "min": 0,
+            "med": 1.0569,
+            "max": 29.8657,
+            "p(90)": 1.9864,
+            "p(95)": 2.4406,
+            "p(99)": 3.9379
+        },
+        "http_reqs": {
+            "rate": 3552.522461422775,
+            "count": 177652
+        },
+        "custom_grpc_req_duration": {
+            "min": 0,
+            "med": 1,
+            "max": 30,
+            "p(90)": 2,
+            "p(95)": 3,
+            "p(99)": 4,
+            "avg": 1.2371159051928997,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "http_req_blocked": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "avg": 0.0037305422961745422,
+            "min": 0,
+            "med": 0,
+            "max": 3.2344
+        },
+        "custom_gql_req_duration": {
+            "min": 0,
+            "med": 6,
+            "max": 45,
+            "p(90)": 11,
+            "p(95)": 12,
+            "p(99)": 18,
+            "avg": 5.895211642095767,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "http_req_duration": {
+            "max": 44.5747,
+            "p(90)": 10.10048,
+            "p(95)": 11.758644999999998,
+            "p(99)": 16.87677799999998,
+            "avg": 5.5337060292032,
+            "min": 0,
+            "med": 5.2766
+        },
+        "http_req_connecting": {
+            "p(95)": 0,
+            "p(99)": 0,
+            "avg": 0.000711712223898408,
+            "min": 0,
+            "med": 0,
+            "max": 2.5023,
+            "p(90)": 0
+        },
+        "http_req_tls_handshaking": {
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0
+        },
+        "http_req_waiting": {
+            "p(90)": 10.0681,
+            "p(95)": 11.705544999999999,
+            "p(99)": 16.828422999999976,
+            "avg": 5.485097931348961,
+            "min": 0,
+            "med": 5.2028,
+            "max": 44.5747
+        },
+        "data_sent": {
+            "count": 72998835,
+            "rate": 1459764.0386553206
+        },
+        "custom_rest_req_duration": {
+            "max": 37,
+            "p(90)": 10,
+            "p(95)": 11,
+            "p(99)": 16,
+            "avg": 5.313919876667452,
+            "min": 0,
+            "med": 5,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "checks": {
+            "passes": 564796,
+            "fails": 0,
+            "value": 1
+        },
+        "http_req_sending": {
+            "avg": 0.012255652624231663,
+            "min": 0,
+            "med": 0,
+            "max": 2.6175,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0.5392
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 177652,
+            "value": 0
+        },
+        "http_req_receiving": {
+            "max": 4.0089,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 1.0087,
+            "avg": 0.036352445230000315,
+            "min": 0,
+            "med": 0
+        },
+        "iteration_duration": {
+            "avg": 5.298716879014933,
+            "min": 0,
+            "med": 2.8386,
+            "max": 55.8636,
+            "p(90)": 12.609120000000008,
+            "p(95)": 15.757819999999972,
+            "p(99)": 22.004029999999972
+        },
+        "iterations": {
+            "count": 282398,
+            "rate": 5647.1373137418595
+        }
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "http 201": {
+                    "passes": 46703,
+                    "fails": 0,
+                    "name": "http 201",
+                    "path": "::http 201",
+                    "id": "a32657682c3b1c2f0fe9992ebc81480e"
+                },
+                "http 200": {
+                    "name": "http 200",
+                    "path": "::http 200",
+                    "id": "1260f33323d77a5ba74c645bf6d4537e",
+                    "passes": 46703,
+                    "fails": 0
+                },
+                "grpc create OK": {
+                    "name": "grpc create OK",
+                    "path": "::grpc create OK",
+                    "id": "99d713fd617fc07e5d6ebb766e7d1cb7",
+                    "passes": 193572,
+                    "fails": 0
+                },
+                "grpc get OK": {
+                    "name": "grpc get OK",
+                    "path": "::grpc get OK",
+                    "id": "8ae31c34dd5a9153ce0acdf2d19eec1f",
+                    "passes": 193572,
+                    "fails": 0
+                },
+                "gql create 200": {
+                    "fails": 0,
+                    "name": "gql create 200",
+                    "path": "::gql create 200",
+                    "id": "06189ae3a00555df1fb9df88bbcc2955",
+                    "passes": 42123
+                },
+                "gql get 200": {
+                    "id": "ec53b59254e62a89bd4c7b75d8ed8c3e",
+                    "passes": 42123,
+                    "fails": 0,
+                    "name": "gql get 200",
+                    "path": "::gql get 200"
+                }
+            }
+    }
+}
