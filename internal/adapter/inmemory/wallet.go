@@ -6,74 +6,66 @@ import (
 	"github.com/Peqchji/go-inbound-adapter-benchmark/pkg"
 )
 
-type InMemoryWalletRepository struct {
+type InMemoryWalletAdapter struct {
 	walletTable inmemory.IInMemoryDBTable
 }
 
-func NewInMemoryWalletRepository(
-	walletTable inmemory.IInMemoryDBTable) *InMemoryWalletRepository {
-	return &InMemoryWalletRepository{
+func NewInMemoryWalletAdapter(
+	walletTable inmemory.IInMemoryDBTable) *InMemoryWalletAdapter {
+	return &InMemoryWalletAdapter{
 		walletTable: walletTable,
 	}
 }
 
-func (r *InMemoryWalletRepository) GetById(id string) pkg.Result[*wallet.Wallet] {
+func (r *InMemoryWalletAdapter) GetById(id string) pkg.Result[wallet.Wallet] {
 	result := r.walletTable.GetById(id)
 	if result.Err != nil {
-		return pkg.Result[*wallet.Wallet]{
-			Res: nil,
+		return pkg.Result[wallet.Wallet]{
 			Err: result.Err,
 		}
 	}
 
-	w, ok := result.Res.(WalletDTO)
+	// Assuming we stored *wallet.Wallet as RecordDTO directly in Save
+	wPtr, ok := result.Res.(*wallet.Wallet)
 	if !ok {
-		return pkg.Result[*wallet.Wallet]{
-			Res: nil,
+		return pkg.Result[wallet.Wallet]{
 			Err: inmemory.ErrNotFoundRecord,
 		}
 	}
 
-	domainWallet := w.ToDomain()
-
-	return pkg.Result[*wallet.Wallet]{
-		Res: &domainWallet,
+	return pkg.Result[wallet.Wallet]{
+		Res: *wPtr,
 		Err: nil,
 	}
 }
 
-func (r *InMemoryWalletRepository) Save(w wallet.Wallet) error {
-	walletDto := WalletDTO{}.FromDomain(w)
-
-	return r.walletTable.Save(walletDto)
+func (r *InMemoryWalletAdapter) Save(w wallet.Wallet) error {
+	// Store pointer to wallet, as standard practice often points to heap, and also if ID() is pointer receiver
+	return r.walletTable.Save(&w)
 }
 
-func (r *InMemoryWalletRepository) GetAll() pkg.Result[[]*wallet.Wallet] {
+func (r *InMemoryWalletAdapter) GetAll() pkg.Result[[]wallet.Wallet] {
 	result := r.walletTable.GetAll()
 	if result.Err != nil {
-		return pkg.Result[[]*wallet.Wallet]{
-			Res: nil,
+		return pkg.Result[[]wallet.Wallet]{
 			Err: result.Err,
 		}
 	}
 
 	records := result.Res
-	wallets := make([]*wallet.Wallet, len(records))
+	wallets := make([]wallet.Wallet, len(records))
 
 	for i, rec := range records {
-		w, ok := rec.(WalletDTO)
+		wPtr, ok := rec.(*wallet.Wallet)
 		if !ok {
-			return pkg.Result[[]*wallet.Wallet]{
-				Res: nil,
+			return pkg.Result[[]wallet.Wallet]{
 				Err: inmemory.ErrNotFoundRecord,
 			}
 		}
-
-		domainWallet := w.ToDomain()
-		wallets[i] = &domainWallet
+		wallets[i] = *wPtr
 	}
 
-	return pkg.Result[[]*wallet.Wallet]{
+	return pkg.Result[[]wallet.Wallet]{
 		Res: wallets,
 		Err: nil,
 	}
