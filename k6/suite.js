@@ -4,21 +4,31 @@ import { check, sleep } from 'k6';
 import { Trend } from 'k6/metrics';
 
 // Custom Metrics for Latency Comparison
-const httpLatency = new Trend('http_duration_custom');
-const grpcLatency = new Trend('grpc_duration_custom');
-const gqlLatency = new Trend('gql_duration_custom');
+const restLatency = new Trend('custom_rest_req_duration');
+const grpcLatency = new Trend('custom_grpc_req_duration');
+const gqlLatency = new Trend('custom_gql_req_duration');
 
 const grpcClient = new grpc.Client();
-grpcClient.load(['../internal/handler/grpc/proto'], 'wallet.proto');
+grpcClient.load(['../cmd/grpcserver/proto'], 'wallet.proto');
 const vus = 50
 
+const restParams = { headers: { 'Content-Type': 'application/json' } };
+const gqlHeaders = { 'Content-Type': 'application/json' };
+
+
 export const options = {
+    summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(90)', 'p(95)', 'p(99)'],
+    thresholds: {
+        custom_rest_req_duration: ['p(95)<500'],
+        custom_grpc_req_duration: ['p(95)<500'],
+        custom_gql_req_duration: ['p(95)<500'],
+    },
     scenarios: {
-        http_test: {
+        rest_test: {
             executor: 'constant-vus',
             vus: vus,
             duration: '10s',
-            exec: 'httpBenchmark',
+            exec: 'restBenchmark',
             startTime: '0s', // Run first
         },
         grpc_test: {
@@ -26,61 +36,84 @@ export const options = {
             vus: vus,
             duration: '10s',
             exec: 'grpcBenchmark',
-            startTime: '10s', // Run after HTTP (approx) - or can run parallel if servers handle it
+            startTime: '20s', // Run after HTTP (approx) - or can run parallel if servers handle it
         },
         gql_test: {
             executor: 'constant-vus',
             vus: vus,
             duration: '10s',
             exec: 'gqlBenchmark',
-            startTime: '20s', // Run after gRPC
+            startTime: '40s',
         },
     },
 };
 
-export function httpBenchmark() {
+export function restBenchmark() {
     const url = 'http://localhost:8080/wallets';
     const payload = JSON.stringify({
         id: `http-${__VU}-${__ITER}`,
-        balance: 1000,
+        firstname: "John",
+        lastname: "Doe",
     });
-    const params = { headers: { 'Content-Type': 'application/json' } };
-
     const start = Date.now();
-    const res = http.post(url, payload, params);
+    const res = http.post(url, payload, restParams);
     const duration = Date.now() - start;
-    httpLatency.add(duration);
+    restLatency.add(duration);
 
     check(res, { 'http 201': (r) => r.status === 201 });
 
-    const getRes = http.get(`${url}/http-${__VU}-${__ITER}`);
+    const startGet = Date.now();
+    const getRes = http.get(`${url}/http-${__VU}-${__ITER}`, { tags: { name: 'GetWalletById' } });
+    const durationGet = Date.now() - startGet;
+    restLatency.add(durationGet);
+
     check(getRes, { 'http 200': (r) => r.status === 200 });
 }
 
-export function grpcBenchmark() {
-    grpcClient.connect('localhost:50051', { plaintext: true });
+let isGrpcConnected = false;
 
-    const data = { id: `grpc-${__VU}-${__ITER}`, balance: 1000 };
+export function grpcBenchmark() {
+    if (!isGrpcConnected) {
+        grpcClient.connect('localhost:8082', { plaintext: true });
+        isGrpcConnected = true;
+    }
+
+    const id = `grpc-${__VU}-${__ITER}`;
+    const data = { owner_id: id, firstname: "John", lastname: "Doe" };
 
     const start = Date.now();
     const res = grpcClient.invoke('wallet.WalletService/CreateWallet', data);
     const duration = Date.now() - start;
     grpcLatency.add(duration);
 
-    check(res, { 'grpc OK': (r) => r && r.status === grpc.StatusOK });
+    check(res, { 'grpc create OK': (r) => r && r.status === grpc.StatusOK });
 
-    grpcClient.close();
+    const getData = { id: id };
+    const startGet = Date.now();
+    const getRes = grpcClient.invoke('wallet.WalletService/GetWallet', getData);
+    const durationGet = Date.now() - startGet;
+    grpcLatency.add(durationGet);
+
+    check(getRes, { 'grpc get OK': (r) => r && r.status === grpc.StatusOK });
 }
 
 export function gqlBenchmark() {
     const url = 'http://localhost:8081/query';
-    const headers = { 'Content-Type': 'application/json' };
-    const mutation = `mutation { createWallet(input: {id: "gql-${__VU}-${__ITER}", balance: 1000}) { id } }`;
+    const id = `gql-${__VU}-${__ITER}`;
+    const mutation = `mutation { createWallet(input: {id: "${id}", firstname: "John", lastname: "Doe"}) { id } }`;
 
     const start = Date.now();
-    const res = http.post(url, JSON.stringify({ query: mutation }), { headers: headers });
+    const res = http.post(url, JSON.stringify({ query: mutation }), { headers: gqlHeaders });
     const duration = Date.now() - start;
     gqlLatency.add(duration);
 
-    check(res, { 'gql 200': (r) => r.status === 200 });
+    check(res, { 'gql create 200': (r) => r.status === 200 });
+
+    const query = `query { wallet(id: "${id}") { id balance } }`;
+    const startGet = Date.now();
+    const getRes = http.post(url, JSON.stringify({ query: query }), { headers: gqlHeaders });
+    const durationGet = Date.now() - startGet;
+    gqlLatency.add(durationGet);
+
+    check(getRes, { 'gql get 200': (r) => r.status === 200 });
 }

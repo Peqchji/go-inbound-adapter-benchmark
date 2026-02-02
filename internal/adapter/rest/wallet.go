@@ -1,10 +1,10 @@
 package rest
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/Peqchji/go-inbound-adapter-benchmark/internal/domain/wallet"
+	"github.com/labstack/echo/v4"
 )
 
 type WalletHandler struct {
@@ -17,9 +17,9 @@ func NewWalletHandler(service *wallet.WalletService) *WalletHandler {
 	}
 }
 
-func (h *WalletHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /wallets/{id}", h.GetWallet)
-	mux.HandleFunc("POST /wallets", h.CreateWallet)
+func (h *WalletHandler) RegisterRoutes(e *echo.Echo) {
+	e.GET("/wallets/:id", h.GetWallet)
+	e.POST("/wallets", h.CreateWallet)
 }
 
 type WalletResponse struct {
@@ -47,21 +47,18 @@ func toWalletResponse(w wallet.Wallet) WalletResponse {
 	}
 }
 
-func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
+func (h *WalletHandler) GetWallet(c echo.Context) error {
+	id := c.Param("id")
 	if id == "" {
-		http.Error(w, "missing id", http.StatusBadRequest)
-		return
+		return c.String(http.StatusBadRequest, "missing id")
 	}
 
 	result := h.service.GetWallet(id)
 	if result.Err != nil {
-		http.Error(w, result.Err.Error(), http.StatusNotFound)
-		return
+		return c.String(http.StatusNotFound, result.Err.Error())
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(toWalletResponse(result.Res))
+	return c.JSON(http.StatusOK, toWalletResponse(result.Res))
 }
 
 type CreateWalletRequest struct {
@@ -70,20 +67,16 @@ type CreateWalletRequest struct {
 	Lastname  string `json:"lastname"`
 }
 
-func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
+func (h *WalletHandler) CreateWallet(c echo.Context) error {
 	var req CreateWalletRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	if err := c.Bind(&req); err != nil {
+		return c.String(http.StatusBadRequest, err.Error())
 	}
 
 	result := h.service.CreateWallet(req.ID, req.Firstname, req.Lastname)
 	if result.Err != nil {
-		http.Error(w, result.Err.Error(), http.StatusInternalServerError)
-		return
+		return c.String(http.StatusInternalServerError, result.Err.Error())
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(toWalletResponse(result.Res))
+	return c.JSON(http.StatusCreated, toWalletResponse(result.Res))
 }
