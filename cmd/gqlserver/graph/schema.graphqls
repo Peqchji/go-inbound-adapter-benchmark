@@ -1,0 +1,25 @@
+type Wallet {
+  id: ID!
+  balance: Int!
+  owner: Owner!
+}
+
+type Owner {
+  id: ID!
+  firstname: String!
+  lastname: String!
+}
+
+type Query {
+  wallet(id: ID!): Wallet
+}
+
+input CreateWalletInput {
+  id: ID!
+  firstname: String!
+  lastname: String!
+}
+
+type Mutation {
+  createWallet(input: CreateWalletInput!): Wallet!
+}
