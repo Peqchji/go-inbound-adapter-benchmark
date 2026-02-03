@@ -1,0 +1,49 @@
+
+services:
+  httpserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: ./cmd/httpserver
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+
+  gqlserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: ./cmd/gqlserver
+    ports:
+      - "8081:8080"
+    environment:
+      - PORT=8080
+
+  grpcserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: ./cmd/grpcserver
+    ports:
+      - "50051:50051"
+    environment:
+      - GRPC_PORT=50051
+
+  benchmark:
+    image: grafana/k6:latest
+    depends_on:
+      - httpserver
+      - gqlserver
+      - grpcserver
+    volumes:
+      - ./k6:/k6
+      - ./cmd/grpcserver/proto:/cmd/grpcserver/proto
+    environment:
+      - HTTP_HOST=httpserver:8080
+      - GQL_HOST=gqlserver:8080
+      - GRPC_HOST=grpcserver:50051
+    command: ["run", "/k6/suite.js"]
