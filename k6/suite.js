@@ -8,6 +8,10 @@ const restLatency = new Trend('custom_rest_req_duration');
 const grpcLatency = new Trend('custom_grpc_req_duration');
 const gqlLatency = new Trend('custom_gql_req_duration');
 
+const HTTP_HOST = __ENV.HTTP_HOST || 'localhost:8080';
+const GQL_HOST = __ENV.GQL_HOST || 'localhost:8081';
+const GRPC_HOST = __ENV.GRPC_HOST || 'localhost:50051';
+
 const grpcClient = new grpc.Client();
 grpcClient.load(['../cmd/grpcserver/proto'], 'wallet.proto');
 const vus = 50
@@ -49,7 +53,7 @@ export const options = {
 };
 
 export function restBenchmark() {
-    const url = 'http://localhost:8080/wallets';
+    const url = `http://${HTTP_HOST}/wallets`;
     const payload = JSON.stringify({
         id: `http-${__VU}-${__ITER}`,
         firstname: "John",
@@ -74,7 +78,7 @@ let isGrpcConnected = false;
 
 export function grpcBenchmark() {
     if (!isGrpcConnected) {
-        grpcClient.connect('localhost:8082', { plaintext: true });
+        grpcClient.connect(GRPC_HOST, { plaintext: true });
         isGrpcConnected = true;
     }
 
@@ -98,7 +102,7 @@ export function grpcBenchmark() {
 }
 
 export function gqlBenchmark() {
-    const url = 'http://localhost:8081/query';
+    const url = `http://${GQL_HOST}/query`;
     const id = `gql-${__VU}-${__ITER}`;
     const mutation = `mutation { createWallet(input: {id: "${id}", firstname: "John", lastname: "Doe"}) { id } }`;
 

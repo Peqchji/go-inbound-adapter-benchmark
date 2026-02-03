@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	adapterinmemory "github.com/Peqchji/go-inbound-adapter-benchmark/internal/adapter/inmemory"
 	adapterrest "github.com/Peqchji/go-inbound-adapter-benchmark/internal/adapter/rest"
@@ -26,10 +27,14 @@ func main() {
 	handler := adapterrest.NewWalletHandler(svc)
 
 	e := echo.New()
-	e.Use(middleware.Logger())
+	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 
 	handler.RegisterRoutes(e)
 
-	e.Logger.Fatal(e.Start(":8080"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	e.Logger.Fatal(e.Start(":" + port))
 }
