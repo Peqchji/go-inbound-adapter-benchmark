@@ -30,7 +30,7 @@ We provide a helper script to start all three servers on different ports:
 - gRPC: `:8082`
 
 ```powershell
-.\start_all.ps1
+docker compose up --build
 ```
 
 ### 2. Run k6 Benchmark
